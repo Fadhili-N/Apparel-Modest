@@ -8,95 +8,101 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 280 60% 20%;
+    --background: 270 60% 50%;
+    --foreground: 0 0% 100%;
     
     --card: 0 0% 100%;
-    --card-foreground: 280 60% 20%;
+    --card-foreground: 270 50% 15%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 280 60% 20%;
+    --popover-foreground: 270 50% 15%;
     
-    --primary: 280 70% 55%;
+    --primary: 270 70% 65%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 330 80% 60%;
+    --secondary: 330 75% 60%;
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 280 20% 96%;
-    --muted-foreground: 280 20% 45%;
+    --muted: 270 30% 85%;
+    --muted-foreground: 270 30% 40%;
     
-    --accent: 180 75% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 75 100% 60%;
+    --accent-foreground: 270 50% 15%;
     
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 280 20% 90%;
-    --input: 280 20% 90%;
-    --ring: 280 70% 55%;
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    --ring: 270 70% 65%;
     
-    --radius: 0.75rem;
+    --radius: 1rem;
     
-    --chart-1: 280 70% 55%;
-    --chart-2: 330 80% 60%;
-    --chart-3: 180 75% 45%;
-    --chart-4: 200 70% 50%;
-    --chart-5: 310 75% 58%;
+    --glass-bg: 0 0% 100%;
+    --glass-border: 0 0% 100%;
     
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 280 60% 20%;
-    --sidebar-primary: 280 70% 55%;
+    --chart-1: 270 70% 65%;
+    --chart-2: 330 75% 60%;
+    --chart-3: 75 100% 60%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 310 75% 60%;
+    
+    --sidebar-background: 270 20% 20%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 270 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 75% 45%;
+    --sidebar-accent: 330 75% 60%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 280 20% 90%;
-    --sidebar-ring: 280 70% 55%;
+    --sidebar-border: 270 40% 30%;
+    --sidebar-ring: 270 70% 65%;
   }
 
   .dark {
-    --background: 280 50% 8%;
-    --foreground: 0 0% 98%;
+    --background: 270 60% 50%;
+    --foreground: 0 0% 100%;
     
-    --card: 280 40% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 270 30% 15%;
+    --card-foreground: 0 0% 100%;
     
-    --popover: 280 40% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 270 30% 15%;
+    --popover-foreground: 0 0% 100%;
     
-    --primary: 280 70% 60%;
+    --primary: 270 70% 65%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 330 80% 65%;
+    --secondary: 330 75% 60%;
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 280 30% 20%;
-    --muted-foreground: 280 15% 65%;
+    --muted: 270 30% 25%;
+    --muted-foreground: 270 15% 70%;
     
-    --accent: 180 75% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 75 100% 60%;
+    --accent-foreground: 270 50% 15%;
     
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 280 30% 20%;
-    --input: 280 30% 20%;
-    --ring: 280 70% 60%;
+    --border: 270 40% 30%;
+    --input: 270 40% 25%;
+    --ring: 270 70% 65%;
     
-    --chart-1: 280 70% 60%;
-    --chart-2: 330 80% 65%;
-    --chart-3: 180 75% 50%;
+    --glass-bg: 270 30% 15%;
+    --glass-border: 270 40% 30%;
+    
+    --chart-1: 270 70% 65%;
+    --chart-2: 330 75% 60%;
+    --chart-3: 75 100% 60%;
     --chart-4: 200 70% 55%;
-    --chart-5: 310 75% 63%;
+    --chart-5: 310 75% 60%;
     
-    --sidebar-background: 280 50% 8%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 280 70% 60%;
+    --sidebar-background: 270 20% 20%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 270 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 75% 50%;
+    --sidebar-accent: 330 75% 60%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 280 30% 20%;
-    --sidebar-ring: 280 70% 60%;
+    --sidebar-border: 270 40% 30%;
+    --sidebar-ring: 270 70% 65%;
   }
 }
 
@@ -106,6 +112,34 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground relative;
+    background: linear-gradient(135deg, hsl(270 70% 50%) 0%, hsl(270 60% 55%) 25%, hsl(300 65% 55%) 50%, hsl(330 70% 60%) 75%, hsl(340 75% 65%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  }
+  
+  .glass-card-strong {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  }
+  
+  .glass-input {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 }

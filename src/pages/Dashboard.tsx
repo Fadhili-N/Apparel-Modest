@@ -100,12 +100,12 @@ export default function Dashboard() {
   if (!user || user.role === 'admin') return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-screen">
+      <header className="glass-card border-white/20">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Clothiq Dashboard</h1>
-            <p className="text-sm text-muted-foreground capitalize">{user.role} Portal - {user.name}</p>
+            <h1 className="text-3xl font-bold text-white">Clothiq Dashboard</h1>
+            <p className="text-sm text-white/80 capitalize">{user.role} Portal - {user.name}</p>
           </div>
           <Button variant="outline" onClick={() => { logout(); navigate('/auth'); }}>
             <LogOut className="h-4 w-4 mr-2" />
@@ -114,52 +114,52 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-8 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card className="hover:bg-white/15 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Today's Orders</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Today's Orders</CardTitle>
+              <Package className="h-4 w-4 text-white/70" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{todayOrders}</div>
+              <div className="text-3xl font-bold text-white">{todayOrders}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:bg-white/15 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Completed Today</CardTitle>
+              <TrendingUp className="h-4 w-4 text-white/70" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedToday}</div>
+              <div className="text-3xl font-bold text-accent">{completedToday}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:bg-white/15 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Assigned</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Total Assigned</CardTitle>
+              <Clock className="h-4 w-4 text-white/70" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{orders.length}</div>
+              <div className="text-3xl font-bold text-white">{orders.length}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Search */}
-        <Card>
+        <Card className="hover:bg-white/15 transition-all duration-300">
           <CardHeader>
-            <CardTitle>Search Orders</CardTitle>
-            <CardDescription>Search by customer name, item, order ID, or date</CardDescription>
+            <CardTitle className="text-white">Search Orders</CardTitle>
+            <CardDescription className="text-white/70">Search by customer name, item, order ID, or date</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-white/70" />
               <Input
                 placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 glass-input text-white placeholder:text-white/50"
               />
             </div>
           </CardContent>
@@ -167,23 +167,23 @@ export default function Dashboard() {
 
         {/* Orders */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold">Your Orders</h2>
+          <h2 className="text-2xl font-bold text-white">Your Orders</h2>
           {filteredOrders.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
+              <CardContent className="py-8 text-center text-white/70">
                 No orders found
               </CardContent>
             </Card>
           ) : (
             filteredOrders.map(order => (
-              <Card key={order.id}>
+              <Card key={order.id} className="hover:bg-white/15 transition-all duration-300">
                 <CardHeader>
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start flex-wrap gap-4">
                     <div>
-                      <CardTitle className="text-lg">{order.id} - {order.customerName}</CardTitle>
-                      <CardDescription>{order.item} ({order.color}, {order.size})</CardDescription>
+                      <CardTitle className="text-xl text-white">{order.id} - {order.customerName}</CardTitle>
+                      <CardDescription className="text-white/70">{order.item} ({order.color}, {order.size})</CardDescription>
                     </div>
-                    <Badge className={getStatusColor(order.status)}>
+                    <Badge className={getStatusColor(order.status) + " text-white"}>
                       {order.status.replace('_', ' ')}
                     </Badge>
                   </div>
@@ -191,28 +191,28 @@ export default function Dashboard() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Quantity</p>
-                      <p className="font-medium">{order.quantity}</p>
+                      <p className="text-white/60">Quantity</p>
+                      <p className="font-medium text-white">{order.quantity}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Price</p>
-                      <p className="font-medium">KES {order.price.toLocaleString()}</p>
+                      <p className="text-white/60">Price</p>
+                      <p className="font-medium text-accent font-bold">KES {order.price.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Payment</p>
-                      <p className="font-medium capitalize">{order.paymentMethod}</p>
+                      <p className="text-white/60">Payment</p>
+                      <p className="font-medium text-white capitalize">{order.paymentMethod}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Delivery</p>
-                      <p className="font-medium capitalize">{order.deliveryMethod}</p>
+                      <p className="text-white/60">Delivery</p>
+                      <p className="font-medium text-white capitalize">{order.deliveryMethod}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/60">
                       Created: {format(order.createdAt, 'PPp')}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/60">
                       Last Updated: {format(order.updatedAt, 'PPp')}
                     </p>
                   </div>
@@ -235,8 +235,8 @@ export default function Dashboard() {
                     {order.stage !== 'logistics' && (
                       <Button
                         onClick={() => moveToNextStage(order.id)}
-                        variant="secondary"
-                        className="flex-1 min-w-[160px] bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                        variant="success"
+                        className="flex-1 min-w-[160px]"
                       >
                         Complete & Move to Next
                       </Button>
@@ -244,8 +244,8 @@ export default function Dashboard() {
                     {order.stage === 'logistics' && (
                       <Button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
-                        variant="secondary"
-                        className="flex-1 min-w-[120px] bg-gradient-to-r from-accent to-primary hover:opacity-90"
+                        variant="success"
+                        className="flex-1 min-w-[120px]"
                       >
                         Mark Delivered
                       </Button>
@@ -253,13 +253,13 @@ export default function Dashboard() {
                   </div>
 
                   {/* Stage Timeline */}
-                  <div className="border-t pt-4">
-                    <p className="text-sm font-medium mb-2">Order Timeline</p>
+                  <div className="border-t border-white/20 pt-4">
+                    <p className="text-sm font-medium mb-2 text-white">Order Timeline</p>
                     <div className="space-y-2">
                       {order.stageHistory.map((stage, idx) => (
                         <div key={idx} className="flex justify-between items-center text-sm">
-                          <span className="capitalize">{stage.stage}</span>
-                          <span className="text-muted-foreground">
+                          <span className="capitalize text-white">{stage.stage}</span>
+                          <span className="text-white/60">
                             {format(stage.timestamp, 'PPp')}
                             {stage.duration && ` (${Math.round(stage.duration / 60)}h)`}
                           </span>

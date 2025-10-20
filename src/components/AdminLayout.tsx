@@ -39,13 +39,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="glass-card-strong"
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
@@ -53,13 +54,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 w-64 glass-card-strong border-r border-white/20 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h1 className="text-xl font-bold">Clothiq Admin</h1>
-            <p className="text-sm text-muted-foreground">{user?.name}</p>
+          <div className="p-6 border-b border-white/20">
+            <h1 className="text-2xl font-bold text-white">Clothiq Admin</h1>
+            <p className="text-sm text-white/70">{user?.name}</p>
           </div>
 
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -71,10 +72,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-white/20 text-white backdrop-blur-sm"
+                      : "hover:bg-white/10 text-white/80 hover:text-white"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -84,7 +85,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-white/20">
             <Button variant="outline" onClick={handleLogout} className="w-full">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
