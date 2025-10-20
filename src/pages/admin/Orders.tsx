@@ -31,11 +31,11 @@ export default function Orders() {
 
   const getStageColor = (stage: Order['stage']) => {
     const colors = {
-      sales: 'bg-blue-500',
-      production: 'bg-yellow-500',
-      instore: 'bg-purple-500',
-      logistics: 'bg-orange-500',
-      delivered: 'bg-green-500'
+      sales: 'bg-primary',
+      production: 'bg-secondary',
+      instore: 'bg-accent',
+      logistics: 'bg-chart-4',
+      delivered: 'bg-chart-3'
     };
     return colors[stage];
   };

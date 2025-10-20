@@ -28,10 +28,8 @@ export default function Dashboard() {
       return;
     }
 
-    // Filter orders based on user role
-    const roleOrders = mockOrders.filter(order => 
-      order.stage === user.role || order.assignedTo === user.name
-    );
+    // Filter orders based on user role - only show orders in their current stage
+    const roleOrders = mockOrders.filter(order => order.stage === user.role);
     setOrders(roleOrders);
     setFilteredOrders(roleOrders);
   }, [user, navigate]);
@@ -46,20 +44,47 @@ export default function Dashboard() {
     setFilteredOrders(filtered);
   }, [searchTerm, orders]);
 
+  const getNextStage = (currentStage: Order['stage']): Order['stage'] | null => {
+    const stages: Order['stage'][] = ['sales', 'production', 'instore', 'logistics'];
+    const currentIndex = stages.indexOf(currentStage);
+    if (currentIndex >= 0 && currentIndex < stages.length - 1) {
+      return stages[currentIndex + 1];
+    }
+    return 'delivered';
+  };
+
   const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { ...order, status: newStatus, updatedAt: new Date() }
-        : order
-    ));
+    setOrders(prev => prev.map(order => {
+      if (order.id !== orderId) return order;
+      
+      const updatedOrder = { ...order, status: newStatus, updatedAt: new Date() };
+      
+      // If marked as completed, move to next stage
+      if (newStatus === 'completed') {
+        const nextStage = getNextStage(order.stage);
+        if (nextStage) {
+          updatedOrder.stage = nextStage;
+          updatedOrder.stageHistory = [
+            ...order.stageHistory,
+            { stage: nextStage, timestamp: new Date() }
+          ];
+        }
+      }
+      
+      return updatedOrder;
+    }));
+  };
+
+  const moveToNextStage = (orderId: string) => {
+    updateOrderStatus(orderId, 'completed');
   };
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
-      case 'completed': return 'bg-green-500';
-      case 'in_progress': return 'bg-blue-500';
-      case 'delayed': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'completed': return 'bg-accent';
+      case 'in_progress': return 'bg-primary';
+      case 'delayed': return 'bg-destructive';
+      default: return 'bg-muted-foreground';
     }
   };
 
@@ -192,21 +217,39 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) => updateOrderStatus(order.id, value as Order['status'])}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => updateOrderStatus(order.id, 'in_progress')}
+                      variant={order.status === 'in_progress' ? 'default' : 'outline'}
+                      className="flex-1 min-w-[120px]"
                     >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="delayed">Delayed</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      In Progress
+                    </Button>
+                    <Button
+                      onClick={() => updateOrderStatus(order.id, 'delayed')}
+                      variant={order.status === 'delayed' ? 'destructive' : 'outline'}
+                      className="flex-1 min-w-[120px]"
+                    >
+                      Delayed
+                    </Button>
+                    {order.stage !== 'logistics' && (
+                      <Button
+                        onClick={() => moveToNextStage(order.id)}
+                        variant="secondary"
+                        className="flex-1 min-w-[160px] bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                      >
+                        Complete & Move to Next
+                      </Button>
+                    )}
+                    {order.stage === 'logistics' && (
+                      <Button
+                        onClick={() => updateOrderStatus(order.id, 'completed')}
+                        variant="secondary"
+                        className="flex-1 min-w-[120px] bg-gradient-to-r from-accent to-primary hover:opacity-90"
+                      >
+                        Mark Delivered
+                      </Button>
+                    )}
                   </div>
 
                   {/* Stage Timeline */}
