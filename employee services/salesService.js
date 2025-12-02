@@ -199,11 +199,18 @@ class SalesService {
             </div>
         `;
 
-        // Add click handler for order header (toggle details)
+        // Add click handler for order header (show details in right panel)
         bubble.querySelector('.order-header').addEventListener('click', (e) => {
             if (!e.target.classList.contains('btn')) {
-                const details = document.getElementById(`details-${order.id}`);
-                details.classList.toggle('expanded');
+                // Remove active class from all bubbles
+                this.container.querySelectorAll('.order-bubble').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked bubble
+                bubble.classList.add('active');
+                // Show details in right panel
+                if (this.detailsPanel && this.detailsContent) {
+                    this.detailsContent.innerHTML = this.renderOrderDetails(order);
+                    this.detailsPanel.classList.add('active');
+                }
             }
         });
 

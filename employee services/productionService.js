@@ -150,12 +150,27 @@ class ProductionService {
     render() {
         if (!this.container) return;
 
-        this.container.innerHTML = '';
+        // Create layout structure: orders list on left, details panel on right
+        this.container.innerHTML = `
+            <div class="orders-list"></div>
+            <div class="order-details-panel" id="production-details-panel">
+                <div class="order-details-panel-header">Order Details</div>
+                <div id="production-details-content"></div>
+            </div>
+        `;
+
+        const ordersList = this.container.querySelector('.orders-list');
+        const detailsPanel = this.container.querySelector('#production-details-panel');
+        const detailsContent = this.container.querySelector('#production-details-content');
 
         this.orders.forEach(order => {
             const orderBubble = this.createOrderBubble(order);
-            this.container.appendChild(orderBubble);
+            ordersList.appendChild(orderBubble);
         });
+
+        // Store references for click handlers
+        this.detailsPanel = detailsPanel;
+        this.detailsContent = detailsContent;
     }
 
     /**
@@ -183,11 +198,18 @@ class ProductionService {
             </div>
         `;
 
-        // Add click handler for order header (toggle details)
+        // Add click handler for order header (show details in right panel)
         bubble.querySelector('.order-header').addEventListener('click', (e) => {
             if (!e.target.classList.contains('btn')) {
-                const details = document.getElementById(`details-${order.id}`);
-                details.classList.toggle('expanded');
+                // Remove active class from all bubbles
+                this.container.querySelectorAll('.order-bubble').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked bubble
+                bubble.classList.add('active');
+                // Show details in right panel
+                if (this.detailsPanel && this.detailsContent) {
+                    this.detailsContent.innerHTML = this.renderOrderDetails(order);
+                    this.detailsPanel.classList.add('active');
+                }
             }
         });
 
