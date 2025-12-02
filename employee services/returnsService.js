@@ -360,24 +360,70 @@ class ReturnsService {
 
         const newResolvedStatus = !returnItem.resolved;
 
-        try {
-            const { error } = await this.supabase
-                .from('returns')
-                .update({ resolved: newResolvedStatus })
-                .eq('id', returnId);
-
-            if (error) {
-                console.error('Error updating return:', error);
-                alert('Failed to update return status. Please try again.');
+        // If marking as resolved, show confirmation dialog
+        if (newResolvedStatus) {
+            const confirmed = confirm('Are you sure you want to delete this return? This action cannot be undone.');
+            
+            if (!confirmed) {
+                // User cancelled - revert checkbox state
+                const checkbox = document.getElementById(`return-${returnId}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
                 return;
             }
 
-            // Update local data
-            returnItem.resolved = newResolvedStatus;
-            this.render();
-        } catch (error) {
-            console.error('Error toggling return resolved status:', error);
-            alert('Failed to update return status. Please try again.');
+            // User confirmed - delete the return
+            try {
+                const { error } = await this.supabase
+                    .from('returns')
+                    .delete()
+                    .eq('id', returnId);
+
+                if (error) {
+                    console.error('Error deleting return:', error);
+                    alert('Failed to delete return. Please try again.');
+                    // Revert checkbox on error
+                    const checkbox = document.getElementById(`return-${returnId}`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                    }
+                    return;
+                }
+
+                // Remove from local array
+                this.returns = this.returns.filter(r => r.id !== returnId);
+                this.render();
+            } catch (error) {
+                console.error('Error deleting return:', error);
+                alert('Failed to delete return. Please try again.');
+                // Revert checkbox on error
+                const checkbox = document.getElementById(`return-${returnId}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
+            }
+        } else {
+            // Unmarking as resolved - just update the status (though this shouldn't happen if we delete on resolve)
+            try {
+                const { error } = await this.supabase
+                    .from('returns')
+                    .update({ resolved: newResolvedStatus })
+                    .eq('id', returnId);
+
+                if (error) {
+                    console.error('Error updating return:', error);
+                    alert('Failed to update return status. Please try again.');
+                    return;
+                }
+
+                // Update local data
+                returnItem.resolved = newResolvedStatus;
+                this.render();
+            } catch (error) {
+                console.error('Error toggling return resolved status:', error);
+                alert('Failed to update return status. Please try again.');
+            }
         }
     }
 

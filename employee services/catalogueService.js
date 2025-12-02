@@ -38,66 +38,11 @@ class CatalogueService {
         this.initImageUpload();
         this.initForm();
         this.initFilters();
-        this.initColorSelection();
 
         // Load products from database
         await this.loadProductsFromDatabase();
     }
 
-    /**
-     * Initialize color selection UI
-     */
-    initColorSelection() {
-        const colorsContainer = document.getElementById('product-colors-container');
-        if (!colorsContainer) return;
-
-        // Rainbow colors + custom option
-        const colorOptions = [
-            { name: 'Red', value: 'Red' },
-            { name: 'Orange', value: 'Orange' },
-            { name: 'Yellow', value: 'Yellow' },
-            { name: 'Green', value: 'Green' },
-            { name: 'Blue', value: 'Blue' },
-            { name: 'Indigo', value: 'Indigo' },
-            { name: 'Violet', value: 'Violet' },
-            { name: 'Custom Colors Available', value: 'Custom Colors Available' }
-        ];
-
-        colorsContainer.innerHTML = colorOptions.map(color => `
-            <label style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid rgba(65, 70, 63, 0.3); border-radius: 8px; background: rgba(65, 70, 63, 0.05); cursor: pointer; transition: all 0.2s ease; user-select: none;">
-                <input type="checkbox" value="${color.value}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #E0D8C9;">
-                <span style="font-size: 13px; color: rgba(65, 70, 63, 0.9); font-weight: 500;">${color.name}</span>
-            </label>
-        `).join('');
-
-        // Add hover effect via JavaScript
-        colorsContainer.querySelectorAll('label').forEach(label => {
-            label.addEventListener('mouseenter', function() {
-                if (!this.querySelector('input').checked) {
-                    this.style.background = 'rgba(65, 70, 63, 0.1)';
-                    this.style.borderColor = 'rgba(65, 70, 63, 0.5)';
-                }
-            });
-            label.addEventListener('mouseleave', function() {
-                if (!this.querySelector('input').checked) {
-                    this.style.background = 'rgba(65, 70, 63, 0.05)';
-                    this.style.borderColor = 'rgba(65, 70, 63, 0.3)';
-                }
-            });
-            
-            // Update style when checked
-            label.querySelector('input').addEventListener('change', function() {
-                if (this.checked) {
-                    label.style.background = 'linear-gradient(135deg, #E0D8C9 0%, #D4C5B0 100%)';
-                    label.style.borderColor = '#D4C5B0';
-                    label.style.color = '#3C3F3E';
-                } else {
-                    label.style.background = 'rgba(65, 70, 63, 0.05)';
-                    label.style.borderColor = 'rgba(65, 70, 63, 0.3)';
-                }
-            });
-        });
-    }
 
     /**
      * Load products from Supabase database
@@ -267,9 +212,6 @@ class CatalogueService {
         const stock = parseInt(document.getElementById('product-stock')?.value) || 0;
         const price = parseFloat(document.getElementById('product-price')?.value) || 0;
         const imageFile = this.imageInput?.files[0];
-        
-        // Get selected colors
-        const selectedColors = this.getSelectedColors();
 
         if (!name || !category || !price) {
             alert('Please fill in all required fields (Name, Category, Price)');
@@ -335,7 +277,7 @@ class CatalogueService {
             }
 
             // Save product to database
-            await this.saveProduct(name, category, description, tags, stock, price, imageUrl, selectedColors);
+            await this.saveProduct(name, category, description, tags, stock, price, imageUrl);
         } catch (error) {
             console.error('Error in handleFormSubmit:', error);
             alert('An error occurred while saving the product');
@@ -348,15 +290,6 @@ class CatalogueService {
     }
 
     /**
-     * Get selected colors from the form
-     * @returns {Array} Array of selected color names
-     */
-    getSelectedColors() {
-        const colorCheckboxes = document.querySelectorAll('#product-colors-container input[type="checkbox"]:checked');
-        return Array.from(colorCheckboxes).map(cb => cb.value);
-    }
-
-    /**
      * Save product (add or update) to Supabase
      * @param {string} name - Product name
      * @param {string} category - Product category
@@ -365,9 +298,8 @@ class CatalogueService {
      * @param {number} stock - Stock quantity
      * @param {number} price - Product price
      * @param {string} imageUrl - Product image URL
-     * @param {Array} colors - Array of available colors
      */
-    async saveProduct(name, category, description, tags, stock, price, imageUrl, colors = []) {
+    async saveProduct(name, category, description, tags, stock, price, imageUrl) {
         try {
             const productData = {
                 name: name,
@@ -378,11 +310,6 @@ class CatalogueService {
                 price: price,
                 image_url: imageUrl
             };
-            
-            // Add colors if provided (store as JSON array)
-            if (colors && colors.length > 0) {
-                productData.colors = colors;
-            }
             
             // Only add status if the column exists (check by trying to include it, but don't fail if it doesn't exist)
             // We'll calculate status dynamically in the render function instead
@@ -459,7 +386,6 @@ class CatalogueService {
         document.getElementById('product-price').value = product.price || 0;
 
         // Load product colors
-        this.loadProductColors(product);
 
         // Show existing image (use image_url from database)
         if (product.image_url || product.image) {
@@ -514,64 +440,10 @@ class CatalogueService {
     /**
      * Reset form
      */
-    /**
-     * Load product colors into the form
-     * @param {Object} product - Product object
-     */
-    loadProductColors(product) {
-        // Parse colors from product
-        let productColors = [];
-        if (product.colors) {
-            if (typeof product.colors === 'string') {
-                try {
-                    productColors = JSON.parse(product.colors);
-                } catch (e) {
-                    // If not JSON, try splitting by comma
-                    productColors = product.colors.split(',').map(c => c.trim()).filter(c => c);
-                }
-            } else if (Array.isArray(product.colors)) {
-                productColors = product.colors;
-            }
-        }
-
-        // Uncheck all color checkboxes first
-        const colorCheckboxes = document.querySelectorAll('#product-colors-container input[type="checkbox"]');
-        colorCheckboxes.forEach(cb => {
-            cb.checked = false;
-            const label = cb.closest('label');
-            if (label) {
-                label.style.background = 'rgba(65, 70, 63, 0.05)';
-                label.style.borderColor = 'rgba(65, 70, 63, 0.3)';
-            }
-        });
-
-        // Check the colors that match the product
-        productColors.forEach(colorName => {
-            const checkbox = Array.from(colorCheckboxes).find(cb => cb.value === colorName);
-            if (checkbox) {
-                checkbox.checked = true;
-                const label = checkbox.closest('label');
-                if (label) {
-                    label.style.background = 'linear-gradient(135deg, #E0D8C9 0%, #D4C5B0 100%)';
-                    label.style.borderColor = '#D4C5B0';
-                }
-            }
-        });
-    }
 
     resetForm() {
         this.editingProductId = null;
         
-        // Clear color selections
-        const colorCheckboxes = document.querySelectorAll('#product-colors-container input[type="checkbox"]');
-        colorCheckboxes.forEach(cb => {
-            cb.checked = false;
-            const label = cb.closest('label');
-            if (label) {
-                label.style.background = 'rgba(65, 70, 63, 0.05)';
-                label.style.borderColor = 'rgba(65, 70, 63, 0.3)';
-            }
-        });
         if (this.form) {
             this.form.reset();
         }
