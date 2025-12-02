@@ -270,15 +270,15 @@
 
         .color-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 12px;
             margin-top: 10px;
             justify-items: center;
         }
 
         .color-option {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -550,13 +550,13 @@
             }
 
             .color-grid {
-                grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+                gap: 10px;
             }
 
             .color-option {
-                width: 45px;
-                height: 45px;
+                width: 38px;
+                height: 38px;
             }
 
             /* Make select boxes smaller and more compact on mobile */
@@ -1009,12 +1009,8 @@
             document.getElementById('selectedPrice').textContent = `KES ${selectedProduct.price.toLocaleString()}`;
             selectedProductDiv.classList.add('active');
             
-            if (selectedProduct.colors && selectedProduct.colors.length > 0) {
-                displayColorOptions(selectedProduct.colors);
-            } else {
-                console.warn('No colors available for product');
-                colorOptionsDiv.classList.remove('active');
-            }
+            // Always show all color options when a product is selected
+            displayColorOptions();
         }
 
         // Color mapping with hex values
@@ -1048,24 +1044,21 @@
             document.getElementById('selectedColorDisplay').textContent = '';
             document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
             
-            colorGrid.innerHTML = colors.map(color => {
-                const colorName = color.trim();
-                // Try to find matching color in colorMap (case-insensitive)
-                const matchingKey = Object.keys(colorMap).find(
-                    key => key.toLowerCase() === colorName.toLowerCase()
-                );
-                const normalizedColorName = matchingKey || colorName;
-                const hexColor = colorMap[normalizedColorName] || '#CCCCCC';
+            // Display ALL colors from colorMap, not just product colors
+            const allColors = Object.keys(colorMap);
+            
+            colorGrid.innerHTML = allColors.map(colorName => {
+                const hexColor = colorMap[colorName];
                 
                 // For white, add a border to make it visible
-                const borderStyle = normalizedColorName.toLowerCase() === 'white' 
+                const borderStyle = colorName.toLowerCase() === 'white' 
                     ? 'border: 3px solid rgba(0, 0, 0, 0.2);' 
                     : '';
                 
                 return `
                     <div class="color-option" 
-                         data-color="${normalizedColorName}" 
-                         data-tooltip="${normalizedColorName}"
+                         data-color="${colorName}" 
+                         data-tooltip="${colorName}"
                          style="background-color: ${hexColor}; ${borderStyle}">
                     </div>
                 `;
