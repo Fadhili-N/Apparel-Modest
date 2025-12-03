@@ -155,7 +155,11 @@ class LogisticsService {
             <div class="orders-list"></div>
             <div class="order-details-panel" id="logistics-details-panel">
                 <div class="order-details-panel-header">Order Details</div>
-                <div id="logistics-details-content"></div>
+                <div id="logistics-details-content">
+                    <p style="color: rgba(65, 70, 63, 0.6); font-size: 14px; text-align: center; padding: 20px;">
+                        Click on an order card to view details
+                    </p>
+                </div>
             </div>
         `;
 
@@ -201,9 +205,15 @@ class LogisticsService {
         // Add click handler for order header (show details in right panel)
         bubble.querySelector('.order-header').addEventListener('click', (e) => {
             if (!e.target.classList.contains('btn') && !e.target.closest('.btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Get the orders list container (parent of all bubbles)
                 const ordersList = bubble.parentElement;
-                if (!ordersList) return;
+                if (!ordersList) {
+                    console.error('Orders list not found');
+                    return;
+                }
                 
                 // Remove active class from all bubbles
                 ordersList.querySelectorAll('.order-bubble').forEach(b => b.classList.remove('active'));
@@ -218,6 +228,8 @@ class LogisticsService {
                 if (detailsPanel && detailsContent) {
                     detailsContent.innerHTML = this.renderOrderDetails(order);
                     detailsPanel.classList.add('active');
+                } else {
+                    console.error('Details panel or content not found');
                 }
             }
         });

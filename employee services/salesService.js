@@ -170,7 +170,11 @@ class SalesService {
             <div class="orders-list"></div>
             <div class="order-details-panel" id="sales-details-panel">
                 <div class="order-details-panel-header">Order Details</div>
-                <div id="sales-details-content"></div>
+                <div id="sales-details-content">
+                    <p style="color: rgba(65, 70, 63, 0.6); font-size: 14px; text-align: center; padding: 20px;">
+                        Click on an order card to view details
+                    </p>
+                </div>
             </div>
         `;
 
@@ -217,9 +221,15 @@ class SalesService {
         // Add click handler for order header (show details in right panel)
         bubble.querySelector('.order-header').addEventListener('click', (e) => {
             if (!e.target.classList.contains('btn') && !e.target.closest('.btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Get the orders list container (parent of all bubbles)
                 const ordersList = bubble.parentElement;
-                if (!ordersList) return;
+                if (!ordersList) {
+                    console.error('Orders list not found');
+                    return;
+                }
                 
                 // Remove active class from all bubbles
                 ordersList.querySelectorAll('.order-bubble').forEach(b => b.classList.remove('active'));
@@ -230,10 +240,18 @@ class SalesService {
                 const detailsPanel = this.container.querySelector('#sales-details-panel');
                 const detailsContent = this.container.querySelector('#sales-details-content');
                 
+                console.log('Details panel:', detailsPanel);
+                console.log('Details content:', detailsContent);
+                
                 // Show details in right panel
                 if (detailsPanel && detailsContent) {
                     detailsContent.innerHTML = this.renderOrderDetails(order);
                     detailsPanel.classList.add('active');
+                    console.log('Details panel activated');
+                } else {
+                    console.error('Details panel or content not found');
+                    console.error('Container:', this.container);
+                    console.error('Panel query:', this.container.querySelector('#sales-details-panel'));
                 }
             }
         });
