@@ -7,7 +7,7 @@
 class OTPService {
     constructor() {
         // OTP Configuration
-        this.otpExpirationMinutes = 10;
+        this.otpExpirationDays = 30; // OTP valid for 1 month
         this.otpLength = 6;
     }
 
@@ -44,12 +44,8 @@ class OTPService {
             return false;
         }
         
-        // Debug: Log that public key was found (without exposing the full key)
-        console.log('✅ EmailJS public key found:', config.publicKey.substring(0, 10) + '...');
-
         // Initialize EmailJS with public key
         emailjs.init(config.publicKey);
-        console.log('✅ EmailJS initialized');
         return true;
     }
 
@@ -79,9 +75,9 @@ class OTPService {
                 throw new Error('Supabase client not initialized');
             }
 
-            // Calculate expiration time (10 minutes from now)
+            // Calculate expiration time (1 month from now)
             const expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + this.otpExpirationMinutes);
+            expiresAt.setDate(expiresAt.getDate() + this.otpExpirationDays);
 
             // Insert OTP into database
             const { data, error } = await supabase
@@ -257,17 +253,26 @@ class OTPService {
                 throw new Error('Supabase client not initialized');
             }
 
-            // Find OTP in database
-            const { data, error } = await supabase
+            // For login OTPs, allow reuse (don't check used status)
+            // For other purposes (password reset, etc.), only allow unused OTPs
+            const isLoginOTP = purpose === 'login';
+            
+            let query = supabase
                 .from('otps')
                 .select('*')
                 .eq('email', email)
                 .eq('otp_code', otpCode)
                 .eq('purpose', purpose)
-                .eq('used', false)
+                .gt('expires_at', new Date().toISOString())
                 .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
+                .limit(1);
+
+            // Only filter by used=false for non-login OTPs
+            if (!isLoginOTP) {
+                query = query.eq('used', false);
+            }
+
+            const { data, error } = await query.single();
 
             if (error || !data) {
                 return {
@@ -277,7 +282,7 @@ class OTPService {
                 };
             }
 
-            // Check if OTP has expired
+            // Check if OTP has expired (double check)
             const expiresAt = new Date(data.expires_at);
             const now = new Date();
             
@@ -289,11 +294,26 @@ class OTPService {
                 };
             }
 
-            // Mark OTP as used
+            // For login OTPs: mark as used after first verification (but still allow reuse)
+            // This tracks that the OTP has been verified at least once
+            // For other OTPs: mark as used (single use)
+            if (isLoginOTP) {
+                // Mark as used to track first verification, but OTP can still be reused
+                if (!data.used) {
+                    await supabase
+                        .from('otps')
+                        .update({ used: true })
+                        .eq('id', data.id);
+                    // Update the data object to reflect the change
+                    data.used = true;
+                }
+            } else {
+                // Non-login OTPs: mark as used (single use)
             await supabase
                 .from('otps')
                 .update({ used: true })
                 .eq('id', data.id);
+            }
 
             return {
                 valid: true,
@@ -307,6 +327,88 @@ class OTPService {
                 message: error.message || 'Error verifying OTP',
                 otpRecord: null
             };
+        }
+    }
+
+    /**
+     * Check if there's a valid OTP for an email
+     * @param {string} email - User email
+     * @param {string} purpose - Purpose to check
+     * @param {boolean} requireVerified - If true, only return OTPs that have been verified at least once (for auto-login)
+     * @returns {Promise<Object|null>} OTP record with remaining time or null
+     */
+    async getValidOTP(email, purpose = 'login', requireVerified = false) {
+        try {
+            const supabase = getSupabaseClient();
+            if (!supabase) {
+                return null;
+            }
+
+            // For login OTPs, allow used OTPs (they can be reused until expiration)
+            // For other purposes, only allow unused OTPs
+            const isLoginOTP = purpose === 'login';
+            
+            let query = supabase
+                .from('otps')
+                .select('*')
+                .eq('email', email)
+                .eq('purpose', purpose)
+                .gt('expires_at', new Date().toISOString())
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            // For login OTPs: if requireVerified is true, only return OTPs that have been verified (used=true)
+            // This ensures newly sent OTPs must be entered first time
+            if (isLoginOTP && requireVerified) {
+                query = query.eq('used', true);
+            } else if (!isLoginOTP) {
+                // Non-login OTPs: only allow unused
+                query = query.eq('used', false);
+            }
+
+            const { data, error } = await query.single();
+
+            if (error || !data) {
+                return null;
+            }
+
+            // Calculate remaining time
+            const expiresAt = new Date(data.expires_at);
+            const now = new Date();
+            const remainingMs = expiresAt - now;
+            const remainingDays = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+            const remainingHours = Math.floor((remainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            return {
+                ...data,
+                remainingDays,
+                remainingHours,
+                remainingMinutes,
+                remainingMs
+            };
+        } catch (error) {
+            console.error('Error getting valid OTP:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Format remaining time as human-readable string
+     * @param {Object} otpRecord - OTP record with remaining time
+     * @returns {string} Formatted time string
+     */
+    formatRemainingTime(otpRecord) {
+        if (!otpRecord) return '';
+        
+        const { remainingDays, remainingHours, remainingMinutes } = otpRecord;
+        
+        if (remainingDays > 0) {
+            return `${remainingDays} day${remainingDays !== 1 ? 's' : ''} and ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+        } else if (remainingHours > 0) {
+            return `${remainingHours} hour${remainingHours !== 1 ? 's' : ''} and ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+        } else {
+            return `${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
         }
     }
 

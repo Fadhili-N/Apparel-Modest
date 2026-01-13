@@ -9,6 +9,7 @@ class LogisticsService {
         this.container = null;
         this.onOrderUpdateCallback = null;
         this.supabase = null;
+        this.ordersChannel = null; // Realtime subscription channel
     }
 
     /**
@@ -27,8 +28,32 @@ class LogisticsService {
             return;
         }
 
+        // Set up event delegation for card clicks
+        if (this.container) {
+            console.log('Setting up event delegation for container:', containerId);
+            // Remove any existing listener to avoid duplicates
+            this.container.removeEventListener('click', this.handleCardClick);
+            // Create bound handler
+            this.handleCardClick = (e) => {
+                const bubble = e.target.closest('.order-bubble');
+                if (bubble && !e.target.closest('.btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    bubble.classList.toggle('expanded');
+                    console.log('Card toggled via delegation, expanded:', bubble.classList.contains('expanded'));
+                }
+            };
+            this.container.addEventListener('click', this.handleCardClick);
+            console.log('Event delegation set up successfully');
+        } else {
+            console.error('Container not found:', containerId);
+        }
+
         // Load orders from database
         await this.loadOrdersFromDatabase();
+        
+        // Set up realtime subscription for orders
+        this.setupOrdersRealtime();
     }
 
     /**
@@ -37,6 +62,7 @@ class LogisticsService {
     async loadOrdersFromDatabase() {
         try {
             // Fetch orders with status 'to_deliver' (matches the tab name 'to-deliver')
+            // Order by updated_at descending so most recently completed items (from production) appear first
             const { data: orders, error } = await this.supabase
                 .from('orders')
                 .select(`
@@ -51,7 +77,7 @@ class LogisticsService {
                     )
                 `)
                 .eq('status', 'to_deliver')
-                .order('created_at', { ascending: false });
+                .order('updated_at', { ascending: false });
 
             if (error) {
                 console.error('Error fetching logistics orders:', error);
@@ -93,23 +119,58 @@ class LogisticsService {
         // Extract measurements from comments if they're stored there
         let comments = order.comments || order.notes || '';
         if (comments && comments.includes('Measurements:')) {
-            // Try multiple regex patterns to handle different formats
-            let measurementsMatch = comments.match(/Measurements:\s*Size=([^,\n\r]+?),\s*Bust=([^,\n\r]+?),\s*Waist=([^,\n\r]+?),\s*Hips=([^\n\r]+?)(?:\n|$)/i);
+            // Parse measurements from comments string
+            // Format 1 (standard): "Measurements: Size=SS 6, Bust=32, Waist=25, Hips=36"
+            // Format 2 (in-house): "Measurements: Height=N/A, Bust=38, High Waist=32, Hips=43"
             
-            if (!measurementsMatch) {
-                measurementsMatch = comments.match(/Measurements:.*?Size=([^,\n\r]+?)[,\s]+Bust=([^,\n\r]+?)[,\s]+Waist=([^,\n\r]+?)[,\s]+Hips=([^\n\r]+?)(?:\n|$)/i);
-            }
+            // Pattern 1: In-house format with Height and High Waist (handle any text before "Measurements:")
+            let measurementsMatch = comments.match(/Measurements:\s*Height=([^,\n\r]+?),\s*Bust=([^,\n\r]+?),\s*High\s+Waist=([^,\n\r]+?),\s*Hips=([^\n\r]+?)(?:\n|$)/i);
             
-            if (!measurementsMatch) {
-                measurementsMatch = comments.match(/Size=([^,\n\r]+?)[,\s]+Bust=([^,\n\r]+?)[,\s]+Waist=([^,\n\r]+?)[,\s]+Hips=([^\n\r]+?)(?:\n|$)/i);
+            if (measurementsMatch && measurementsMatch.length >= 5) {
+                // In-house format: Height, Bust, High Waist, Hips
+                measurements.size = measurementsMatch[1].trim(); // Use Height as size (or could be N/A)
+                measurements.bust = measurementsMatch[2].trim();
+                measurements.waist = measurementsMatch[3].trim(); // High Waist becomes waist
+                measurements.hips = measurementsMatch[4].trim();
+            } else {
+                // Pattern 2: Standard format with Size and Waist
+                measurementsMatch = comments.match(/Measurements:\s*Size=([^,\n\r]+?),\s*Bust=([^,\n\r]+?),\s*Waist=([^,\n\r]+?),\s*Hips=([^\n\r]+?)(?:\n|$)/i);
+                
+                // Pattern 3: More flexible, handles any spacing
+                if (!measurementsMatch) {
+                    measurementsMatch = comments.match(/Measurements:.*?Size=([^,\n\r]+?)[,\s]+Bust=([^,\n\r]+?)[,\s]+Waist=([^,\n\r]+?)[,\s]+Hips=([^\n\r]+?)(?:\n|$)/i);
+                }
+                
+                // Pattern 4: Very flexible, just find the values (standard format)
+                if (!measurementsMatch) {
+                    measurementsMatch = comments.match(/Size=([^,\n\r]+?)[,\s]+Bust=([^,\n\r]+?)[,\s]+Waist=([^,\n\r]+?)[,\s]+Hips=([^\n\r]+?)(?:\n|$)/i);
+                }
+                
+                // Pattern 5: Very flexible, just find the values (in-house format)
+                if (!measurementsMatch) {
+                    measurementsMatch = comments.match(/Height=([^,\n\r]+?)[,\s]+Bust=([^,\n\r]+?)[,\s]+High\s+Waist=([^,\n\r]+?)[,\s]+Hips=([^\n\r]+?)(?:\n|$)/i);
+                }
+                
+                if (measurementsMatch && measurementsMatch.length >= 5) {
+                    // Check if it's in-house format (has Height) or standard format (has Size)
+                    const firstMatch = measurementsMatch[0];
+                    if (firstMatch.includes('Height=')) {
+                        // In-house format
+                        measurements.size = measurementsMatch[1].trim();
+                        measurements.bust = measurementsMatch[2].trim();
+                        measurements.waist = measurementsMatch[3].trim();
+                        measurements.hips = measurementsMatch[4].trim();
+                    } else {
+                        // Standard format
+                        measurements.size = measurementsMatch[1].trim();
+                        measurements.bust = measurementsMatch[2].trim();
+                        measurements.waist = measurementsMatch[3].trim();
+                        measurements.hips = measurementsMatch[4].trim();
+                    }
+                }
             }
             
             if (measurementsMatch && measurementsMatch.length >= 5) {
-                measurements.size = measurementsMatch[1].trim();
-                measurements.bust = measurementsMatch[2].trim();
-                measurements.waist = measurementsMatch[3].trim();
-                measurements.hips = measurementsMatch[4].trim();
-                
                 // Remove measurements line from comments
                 comments = comments.replace(/\n?Measurements:.*$/m, '').trim();
                 comments = comments.replace(/Measurements:.*$/m, '').trim();
@@ -119,19 +180,48 @@ class LogisticsService {
         // Format date
         const orderDate = order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : '';
 
+        // Process items from JSONB column (new approach) or fallback to single item
+        let items = [];
+        
+        // Check if order has items stored as JSONB array
+        if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+            console.log(`📦 Processing ${order.items.length} items from JSONB for order ${order.id}`);
+            items = order.items.map(item => ({
+                productName: item.product_name || 'Unknown Product',
+                productImage: item.product_image || 'https://via.placeholder.com/400',
+                color: item.color || '',
+                price: item.price || 0,
+                measurements: item.measurements || {}
+            }));
+            console.log(`✅ Created ${items.length} items for order ${order.id}:`, items.map(i => i.productName));
+        } else {
+            // Fallback to single item (backward compatibility for old orders)
+            console.log(`ℹ️ No items array found for order ${order.id}, using single item fallback`);
+            items = [{
+                productName: order.products?.name || order.product_name || 'Unknown Product',
+                productImage: order.products?.image_url || order.product_image || order.image_url || 'https://via.placeholder.com/400',
+                color: order.color || '',
+                price: order.price || 0,
+                measurements: measurements
+            }];
+        }
+
         return {
             id: order.id,
             customerName: order.customers?.name || order.customer_name || 'Unknown Customer',
             phone: order.customers?.phone || order.phone || '',
-            productName: order.products?.name || order.product_name || 'Unknown Product',
-            productImage: order.products?.image_url || order.product_image || order.image_url || 'https://via.placeholder.com/400',
-            color: order.color || '',
-            price: order.price || 0,
+            productName: items[0]?.productName || 'Unknown Product', // First item for backward compatibility
+            productImage: items[0]?.productImage || 'https://via.placeholder.com/400', // First item for backward compatibility
+            color: items[0]?.color || '', // First item for backward compatibility
+            price: order.price || 0, // Total price
+            items: items, // Array of all items
             measurements: measurements,
             comments: comments,
             date: orderDate,
             deliveryOption: order.delivery_option || order.deliveryOption || '',
-            paymentOption: order.payment_option || order.paymentOption || ''
+            paymentOption: order.payment_option || order.paymentOption || '',
+            paymentReference: order.payment_reference || order.paymentReference || '', // Include payment reference
+            deliveryLocation: order.delivery_display_name || order.delivery_location || order.deliveryLocation || ''
         };
     }
 
@@ -152,10 +242,19 @@ class LogisticsService {
 
         this.container.innerHTML = '';
 
+        if (this.orders.length === 0) {
+            // Show empty state message
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-state-message';
+            emptyMessage.style.cssText = 'text-align: center; padding: 60px 20px; color: rgba(65, 70, 63, 0.6); font-size: 18px; font-weight: 500;';
+            emptyMessage.textContent = 'No logistics requests yet';
+            this.container.appendChild(emptyMessage);
+        } else {
         this.orders.forEach(order => {
             const orderBubble = this.createOrderBubble(order);
             this.container.appendChild(orderBubble);
         });
+        }
     }
 
     /**
@@ -166,35 +265,72 @@ class LogisticsService {
     createOrderBubble(order) {
         const bubble = document.createElement('div');
         bubble.className = 'order-bubble';
+        
+        // Check if order has multiple items
+        const items = order.items || [order]; // Fallback to single item if items array doesn't exist
+        const isMultiItem = items.length > 1;
+        
+        // Generate items HTML - use same format for both single and multi-item for consistency
+        let itemsHTML = '';
+        if (isMultiItem) {
+            // Multi-item: horizontal scrollable row
+            itemsHTML = `
+                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;">
+                        ${items.map(item => `
+                            <div style="flex-shrink: 0; text-align: center; min-width: 100px;">
+                                <img src="${item.productImage}" alt="${item.productName}" 
+                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; border: 2px solid rgba(27, 77, 62, 0.2);">
+                                <div style="font-size: 12px; font-weight: 600; color: #2d3748; margin-bottom: 2px;">${item.productName}</div>
+                                <div style="font-size: 11px; color: #718096; margin-bottom: 2px;">Color: ${item.color}</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #1B4D3E;">KES ${item.price.toLocaleString()}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            // Single-item: use same layout structure as multi-item for consistency
+            itemsHTML = `
+                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <div style="display: flex; gap: 12px; padding-bottom: 8px;">
+                        <div style="flex-shrink: 0; text-align: center; min-width: 100px;">
+                            <img src="${items[0].productImage}" alt="${items[0].productName}" 
+                                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; border: 2px solid rgba(27, 77, 62, 0.2);">
+                            <div style="font-size: 12px; font-weight: 600; color: #2d3748; margin-bottom: 2px;">${items[0].productName}</div>
+                            <div style="font-size: 11px; color: #718096; margin-bottom: 2px;">Color: ${items[0].color}</div>
+                            <div style="font-size: 12px; font-weight: 600; color: #1B4D3E;">KES ${items[0].price.toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
         bubble.innerHTML = `
             <div class="order-header">
-                <img src="${order.productImage}" alt="${order.productName}" class="order-image">
-                <div class="order-info">
+                <div class="order-info" style="width: 100%;">
                     <div class="customer-name">${order.customerName}</div>
-                    <div class="product-name">${order.productName}</div>
-                    <span class="product-color">${order.color}</span>
-                </div>
-                <div class="order-actions">
-                    <button class="btn btn-delivered" data-action="delivered" data-id="${order.id}">Delivered</button>
+                    <div class="product-name" style="margin-top: 4px;">${isMultiItem ? `${items.length} Item${items.length > 1 ? 's' : ''}` : items[0].productName}</div>
                 </div>
             </div>
+            ${itemsHTML}
             <div class="order-details" id="details-${order.id}">
                 ${this.renderOrderDetails(order)}
             </div>
+            <div class="order-actions">
+                <button class="btn btn-delivered" data-action="delivered" data-id="${order.id}">Delivered</button>
+            </div>
         `;
 
-        // Add click handler for order header (toggle details)
-        bubble.querySelector('.order-header').addEventListener('click', (e) => {
-            if (!e.target.classList.contains('btn')) {
-                const details = document.getElementById(`details-${order.id}`);
-                details.classList.toggle('expanded');
-            }
-        });
-
-        // Add button click handler
-        bubble.querySelector('[data-action="delivered"]').addEventListener('click', () => {
-            this.markAsDelivered(order.id);
-        });
+        // Note: Click handler for expanding is now handled via event delegation in init()
+        // Add button click handler (stop propagation to prevent toggle)
+        const deliveredBtn = bubble.querySelector('[data-action="delivered"]');
+        if (deliveredBtn) {
+            deliveredBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.markAsDelivered(order.id);
+            });
+        }
 
         return bubble;
     }
@@ -205,13 +341,20 @@ class LogisticsService {
      * @returns {string} HTML string for order details
      */
     renderOrderDetails(order) {
+        const items = order.items || [order];
+        const isMultiItem = items.length > 1;
+        
         return `
             <div class="detail-row">
                 <div class="detail-label">Phone:</div>
                 <div class="detail-value">${order.phone}</div>
             </div>
             <div class="detail-row">
-                <div class="detail-label">Price:</div>
+                <div class="detail-label">Items:</div>
+                <div class="detail-value">${items.length} item${items.length > 1 ? 's' : ''}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">${isMultiItem ? 'Total Price:' : 'Price:'}</div>
                 <div class="detail-value">KES ${order.price.toLocaleString()}</div>
             </div>
             <div class="detail-row">
@@ -247,10 +390,20 @@ class LogisticsService {
                     <div class="detail-value">${this.formatDeliveryOption(order.deliveryOption)}</div>
                 </div>
             ` : ''}
+            ${order.deliveryLocation ? `
+                <div class="detail-row">
+                    <div class="detail-label">Delivery Location:</div>
+                    <div class="detail-value">${order.deliveryLocation}</div>
+                </div>
+            ` : ''}
             ${order.paymentOption ? `
                 <div class="detail-row">
                     <div class="detail-label">Payment Option:</div>
-                    <div class="detail-value">${this.formatPaymentOption(order.paymentOption)}</div>
+                    <div class="detail-value">${order.paymentOption === 'mpesa' && order.paymentReference && order.paymentReference.startsWith('INHOUSE-')
+                        ? `inhouse; mpesa code: ${order.paymentReference.replace('INHOUSE-', '')}` 
+                        : order.paymentOption === 'mpesa' && order.paymentReference
+                        ? `${this.formatPaymentOption(order.paymentOption)} (Code: ${order.paymentReference})`
+                        : this.formatPaymentOption(order.paymentOption)}</div>
                 </div>
             ` : ''}
             <div class="detail-row">
@@ -399,6 +552,56 @@ class LogisticsService {
             'apple-pay': 'Apple Pay'
         };
         return options[option] || option;
+    }
+
+    /**
+     * Set up realtime subscription for orders table (to_deliver status)
+     */
+    setupOrdersRealtime() {
+        if (!this.supabase) {
+            console.warn('Supabase client not available for realtime subscription');
+            return;
+        }
+
+        // Clean up existing subscription if any
+        if (this.ordersChannel) {
+            this.supabase.removeChannel(this.ordersChannel);
+        }
+
+        // Create new channel for orders table with status 'to_deliver'
+        this.ordersChannel = this.supabase
+            .channel('orders-to-deliver-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    schema: 'public',
+                    table: 'orders',
+                    filter: 'status=eq.to_deliver' // Only listen to to_deliver orders
+                },
+                (payload) => {
+                    console.log('Orders realtime event (logistics):', payload.eventType, payload);
+                    // Reload orders when any change occurs
+                    this.loadOrdersFromDatabase();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Subscribed to orders realtime changes (logistics - to_deliver)');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Error subscribing to orders realtime (logistics)');
+                }
+            });
+    }
+
+    /**
+     * Clean up realtime subscriptions
+     */
+    cleanup() {
+        if (this.ordersChannel && this.supabase) {
+            this.supabase.removeChannel(this.ordersChannel);
+            this.ordersChannel = null;
+        }
     }
 
     /**

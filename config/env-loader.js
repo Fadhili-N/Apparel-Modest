@@ -26,7 +26,6 @@ async function loadEnvConfig() {
         try {
             // Fetch environment variables from Netlify function
             const functionUrl = '/.netlify/functions/get-env-config';
-            console.log('🔍 Fetching config from:', functionUrl);
             
             const response = await fetch(functionUrl);
             
@@ -37,50 +36,56 @@ async function loadEnvConfig() {
             }
             
             const config = await response.json();
-            console.log('📦 Received config from Netlify function:', config);
-            console.log('📦 Full config object keys:', Object.keys(config));
-            console.log('📦 Config values:', JSON.stringify(config, null, 2));
+            
+            // Helper function to sanitize values (remove trailing commas and whitespace)
+            const sanitizeValue = (value) => {
+                if (!value || typeof value !== 'string') return value || '';
+                return value.trim().replace(/,$/, '');
+            };
+            
+            // Sanitize all config values to remove trailing commas and whitespace
+            const sanitizedConfig = {
+                supabaseUrl: sanitizeValue(config.supabaseUrl),
+                supabaseAnonKey: sanitizeValue(config.supabaseAnonKey),
+                cloudinaryCloudName: sanitizeValue(config.cloudinaryCloudName),
+                cloudinaryApiKey: sanitizeValue(config.cloudinaryApiKey),
+                cloudinaryUploadPreset: sanitizeValue(config.cloudinaryUploadPreset),
+                emailjsServiceId: sanitizeValue(config.emailjsServiceId),
+                emailjsTemplateId: sanitizeValue(config.emailjsTemplateId),
+                emailjsPublicKey: sanitizeValue(config.emailjsPublicKey),
+                emailjsWelcomeTemplateId: sanitizeValue(config.emailjsWelcomeTemplateId),
+                mapboxAccessToken: sanitizeValue(config.mapboxAccessToken),
+                paystackPublicKey: sanitizeValue(config.paystackPublicKey)
+            };
             
             // Set Supabase configuration
-            window.SUPABASE_URL = config.supabaseUrl || '';
-            window.SUPABASE_ANON_KEY = config.supabaseAnonKey || '';
+            window.SUPABASE_URL = sanitizedConfig.supabaseUrl;
+            window.SUPABASE_ANON_KEY = sanitizedConfig.supabaseAnonKey;
             
             // Set Cloudinary configuration
-            window.CLOUDINARY_CLOUD_NAME = config.cloudinaryCloudName || '';
-            window.CLOUDINARY_API_KEY = config.cloudinaryApiKey || '';
-            window.CLOUDINARY_UPLOAD_PRESET = config.cloudinaryUploadPreset || '';
+            window.CLOUDINARY_CLOUD_NAME = sanitizedConfig.cloudinaryCloudName;
+            window.CLOUDINARY_API_KEY = sanitizedConfig.cloudinaryApiKey;
+            window.CLOUDINARY_UPLOAD_PRESET = sanitizedConfig.cloudinaryUploadPreset;
             
             // Set EmailJS configuration
-            window.EMAILJS_SERVICE_ID = config.emailjsServiceId || '';
-            window.EMAILJS_TEMPLATE_ID = config.emailjsTemplateId || '';
-            window.EMAILJS_PUBLIC_KEY = config.emailjsPublicKey || '';
-            window.EMAILJS_WELCOME_TEMPLATE_ID = config.emailjsWelcomeTemplateId || '';
+            window.EMAILJS_SERVICE_ID = sanitizedConfig.emailjsServiceId;
+            window.EMAILJS_TEMPLATE_ID = sanitizedConfig.emailjsTemplateId;
+            window.EMAILJS_PUBLIC_KEY = sanitizedConfig.emailjsPublicKey;
+            window.EMAILJS_WELCOME_TEMPLATE_ID = sanitizedConfig.emailjsWelcomeTemplateId;
+            
+            // Set Mapbox configuration
+            window.MAPBOX_ACCESS_TOKEN = sanitizedConfig.mapboxAccessToken;
+            
+            // Set Paystack configuration (public key only - safe to expose)
+            window.PAYSTACK_PUBLIC_KEY = sanitizedConfig.paystackPublicKey;
             
             // Mark as loaded
             window.ENV_CONFIG_LOADED = true;
             
-            console.log('✅ Environment configuration loaded from Netlify');
-            console.log('📍 Supabase URL:', config.supabaseUrl ? `Set ✓ (${config.supabaseUrl.substring(0, 30)}...)` : 'Missing ❌');
-            console.log('🔑 Supabase Key:', config.supabaseAnonKey ? `Set ✓ (${config.supabaseAnonKey.substring(0, 20)}...)` : 'Missing ❌');
-            console.log('☁️ Cloudinary:', config.cloudinaryCloudName ? `Set ✓ (${config.cloudinaryCloudName})` : 'Missing ❌');
-            console.log('📧 EmailJS Service:', config.emailjsServiceId ? `Set ✓ (${config.emailjsServiceId})` : 'Missing ❌');
+            // Dispatch event to notify other scripts (using sanitized config)
+            window.dispatchEvent(new CustomEvent('envConfigLoaded', { detail: sanitizedConfig }));
             
-            // Debug logging for EmailJS Public Key
-            if (config.emailjsPublicKey) {
-                const keyPreview = config.emailjsPublicKey.substring(0, 10) + '...';
-                console.log('📧 EmailJS Public Key: Set ✓', keyPreview);
-                console.log('   📝 Note: This key was loaded from either EMAILJS_PUBLIC_KEY or API_keys_Public_Key in Netlify');
-            } else {
-                console.error('📧 EmailJS Public Key: Missing ❌');
-                console.error('   ⚠️ Check Netlify environment variables for either:');
-                console.error('      - EMAILJS_PUBLIC_KEY');
-                console.error('      - API_keys_Public_Key');
-            }
-            
-            // Dispatch event to notify other scripts
-            window.dispatchEvent(new CustomEvent('envConfigLoaded', { detail: config }));
-            
-            return config;
+            return sanitizedConfig;
         } catch (error) {
             console.error('❌ Error loading environment configuration:', error);
             console.warn('⚠️ Make sure environment variables are set in Netlify dashboard');

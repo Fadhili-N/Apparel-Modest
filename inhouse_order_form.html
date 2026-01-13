@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Place Your Order</title>
+    <title>In-House Order Form</title>
     <style>
         * {
             margin: 0;
@@ -162,6 +162,7 @@
 
         .search-container {
             position: relative;
+            z-index: 1;
         }
         
         .search-results-backdrop {
@@ -201,9 +202,17 @@
             touch-action: pan-y;
             will-change: transform;
         }
+        
+        @media (max-width: 640px) {
+            /* Search results now appear under search bar like desktop */
+            .search-results {
+                position: absolute;
+                max-height: 50vh;
+            }
+        }
 
         .search-results.active {
-            display: block;
+            display: block !important;
         }
 
         .search-result-item {
@@ -223,7 +232,8 @@
             z-index: 1;
         }
 
-        .search-result-item:hover {
+        .search-result-item:hover,
+        .search-result-item:active {
             background: linear-gradient(90deg, rgba(246, 211, 101, 0.1) 0%, rgba(253, 160, 133, 0.1) 100%);
             transform: translateX(4px);
         }
@@ -285,8 +295,10 @@
             position: absolute;
             top: 12px;
             right: 12px;
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.9);
             border: 1.5px solid rgba(0, 0, 0, 0.1);
@@ -296,9 +308,14 @@
             justify-content: center;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 10;
         }
 
-        .selected-product-close:hover {
+        .selected-product-close:hover,
+        .selected-product-close:active {
             background: rgba(253, 160, 133, 0.2);
             border-color: #fda085;
             transform: scale(1.1);
@@ -392,54 +409,32 @@
             font-weight: 400;
         }
 
-        .add-to-cart-btn {
-            width: 100%;
-            padding: 16px;
-            margin-top: 16px;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(253, 160, 133, 0.4);
-            letter-spacing: 0.5px;
-            display: none;
-        }
-
-        .add-to-cart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(253, 160, 133, 0.5);
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        }
-
-        .add-to-cart-btn:active {
-            transform: translateY(0);
-        }
-
         .color-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
             gap: 12px;
             margin-top: 10px;
             justify-items: center;
         }
 
         .color-option {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
             border: 3px solid rgba(0, 0, 0, 0.1);
             position: relative;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .color-option:hover {
+        .color-option:hover,
+        .color-option:active {
             transform: scale(1.15);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             z-index: 10;
@@ -522,9 +517,6 @@
             font-size: 14px;
             transition: all 0.3s ease;
             font-family: inherit;
-            pointer-events: auto !important;
-            z-index: 1;
-            position: relative;
         }
 
         .custom-size-field input:focus {
@@ -536,12 +528,6 @@
 
         .custom-size-field input:invalid {
             border-color: #fc8181;
-        }
-
-        .custom-size-input {
-            pointer-events: auto !important;
-            z-index: 1;
-            position: relative;
         }
 
         .clothing-type-selector {
@@ -739,16 +725,14 @@
             }
 
             .color-option {
-                width: 38px;
-                height: 38px;
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                min-height: 44px;
             }
-
-            /* Make Add Colour button prominent on mobile */
-            .add-to-cart-btn {
-                padding: 18px !important;
-                font-size: 17px !important;
-                min-height: 56px !important;
-                box-shadow: 0 8px 25px rgba(253, 160, 133, 0.5) !important;
+            
+            .color-grid {
+                grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
             }
 
             /* Make select boxes smaller and more compact on mobile */
@@ -814,9 +798,34 @@
                 box-sizing: border-box;
             }
 
-            /* Fix search results positioning */
+            /* Fix search results positioning on mobile */
+            .search-container {
+                position: relative !important;
+                z-index: 10000 !important;
+            }
+            
             .search-results {
-                max-width: calc(100vw - 20px) !important;
+                max-width: calc(100vw - 40px) !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 10000 !important;
+                position: absolute !important;
+                max-height: 50vh !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            .form-group {
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* Ensure search results are not clipped */
+            .form-content {
+                overflow: visible !important;
+            }
+            
+            .container {
+                overflow: visible !important;
             }
 
              /* Map container mobile - smaller on mobile */
@@ -829,7 +838,11 @@
              }
 
             #locationSuggestions {
-                max-width: calc(100vw - 20px) !important;
+                max-width: calc(100vw - 40px) !important;
+                z-index: 10000 !important;
+                position: absolute !important;
+                max-height: 50vh !important;
+                -webkit-overflow-scrolling: touch !important;
             }
         }
 
@@ -951,8 +964,8 @@
                 <div class="company-logo-divider"></div>
                 <div class="company-logo-bottom">MODEST</div>
             </div>
-            <h1>Place Your Order</h1>
-            <p>Find your perfect piece and let us create it for you</p>
+            <h1>In-House Order Form</h1>
+            <p>Fill out the order form for in-house customers</p>
         </div>
 
         <form class="form-content" id="orderForm">
@@ -1000,21 +1013,7 @@
             <div class="form-group color-options" id="colorOptions">
                 <label>Select Color <span class="required">*</span></label>
                 <div class="selected-color-display" id="selectedColorDisplay"></div>
-                <button type="button" id="addToCartBtn" class="add-to-cart-btn" style="display: none; width: 100%; padding: 16px; margin-top: 16px; margin-bottom: 16px; background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 20px rgba(253, 160, 133, 0.4); letter-spacing: 0.5px;">
-                    Add Colour
-                </button>
                 <div class="color-grid" id="colorGrid"></div>
-            </div>
-
-            <!-- Order Cart -->
-            <div class="form-group" id="orderCart" style="display: none;">
-                <label>Order Items <span class="required">*</span> <span id="cartCount" style="font-size: 12px; font-weight: normal; color: #718096;">(0 items)</span></label>
-                <div id="cartItems" style="background: rgba(253, 160, 133, 0.05); border-radius: 12px; padding: 16px; margin-top: 8px; min-height: 60px; border: 1.5px solid rgba(253, 160, 133, 0.2);">
-                    <div style="text-align: center; color: #718096; padding: 20px;">No items added yet. Select a product and color to add items to your cart.</div>
-                </div>
-                <div id="cartTotal" style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, rgba(246, 211, 101, 0.2) 0%, rgba(253, 160, 133, 0.2) 100%); border-radius: 8px; text-align: right; font-size: 16px; font-weight: 700; color: #2d3748; display: none;">
-                    Total: KES <span id="totalAmount">0</span>
-                </div>
             </div>
 
             <div class="form-group">
@@ -1092,19 +1091,19 @@
                     <div class="custom-size-grid">
                         <div class="custom-size-field">
                             <label for="customHeight">Height <span class="required">*</span></label>
-                            <input type="text" id="customHeight" placeholder="e.g., 6'5" maxlength="4" inputmode="numeric">
+                            <input type="text" id="customHeight" placeholder="e.g., 6'5" maxlength="4" inputmode="numeric" required>
                         </div>
                         <div class="custom-size-field">
                             <label for="customBust">Bust (cm) <span class="required">*</span></label>
-                            <input type="number" id="customBust" min="0" step="0.1" placeholder="e.g., 42">
+                            <input type="number" id="customBust" min="0" step="0.1" placeholder="e.g., 42" required>
                         </div>
                         <div class="custom-size-field">
                             <label for="customWaist">High Waist (cm) <span class="required">*</span></label>
-                            <input type="number" id="customWaist" min="0" step="0.1" placeholder="e.g., 34">
+                            <input type="number" id="customWaist" min="0" step="0.1" placeholder="e.g., 34" required>
                         </div>
                         <div class="custom-size-field">
                             <label for="customHips">Hips (cm) <span class="required">*</span></label>
-                            <input type="number" id="customHips" min="0" step="0.1" placeholder="e.g., 46">
+                            <input type="number" id="customHips" min="0" step="0.1" placeholder="e.g., 46" required>
                         </div>
                     </div>
                 </div>
@@ -1127,13 +1126,15 @@
                         <div style="position: relative;">
                             <input type="text" id="locationSearch" placeholder="Type a place name (e.g., Nairobi, Mombasa, Westlands...)" 
                                    style="width: 100%; padding: 12px 40px 12px 16px; border: 1.5px solid rgba(0, 0, 0, 0.08); background: rgba(255, 255, 255, 0.9); border-radius: 10px; font-size: 14px;">
-                            <button type="button" id="clearLocationSearch" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #718096; cursor: pointer; padding: 0; display: none; align-items: center; justify-content: center; font-size: 20px; line-height: 1; width: 24px; height: 24px; border-radius: 50%; transition: all 0.2s;" 
+                            <button type="button" id="clearLocationSearch" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #718096; cursor: pointer; padding: 8px; display: none; align-items: center; justify-content: center; font-size: 20px; line-height: 1; min-width: 44px; min-height: 44px; width: 44px; height: 44px; border-radius: 50%; transition: all 0.2s; touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 10;" 
                                     onmouseover="this.style.background='rgba(0,0,0,0.05)'; this.style.color='#2d3748';" 
                                     onmouseout="this.style.background='transparent'; this.style.color='#718096';"
+                                    ontouchstart="this.style.background='rgba(0,0,0,0.05)'; this.style.color='#2d3748';"
+                                    ontouchend="this.style.background='transparent'; this.style.color='#718096';"
                                     aria-label="Clear search">
                                 ×
                             </button>
-                            <div id="locationSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid rgba(0, 0, 0, 0.08); border-radius: 10px; margin-top: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"></div>
+                            <div id="locationSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid rgba(0, 0, 0, 0.08); border-radius: 10px; margin-top: 4px; max-height: 200px; overflow-y: auto; overflow-x: hidden; z-index: 10000; display: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); -webkit-overflow-scrolling: touch; touch-action: pan-y;"></div>
                         </div>
                     </div>
                     <!-- Manual entry option - moved above map -->
@@ -1179,21 +1180,11 @@
             </div>
 
             <div class="form-group">
-                <label for="email">Email Address <span class="required">*</span></label>
-                <input type="email" id="email" required placeholder="Enter your email address">
-            </div>
-
-            <div class="form-group">
-                <label>Payment Method</label>
-                <div style="padding: 14px 18px; background: rgba(27, 77, 62, 0.1); border-radius: 12px; border: 1px solid rgba(27, 77, 62, 0.2);">
-                    <p style="margin: 0; font-size: 15px; font-weight: 400; color: #2d3748; margin-bottom: 8px;">
-                        💳 Payment Facilitated by Paystack
-                    </p>
-                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.6; font-weight: 400;">
-                        Available payment methods: M-Pesa, Airtel Money, Visa/Mastercard, Bank Transfer, Apple Pay, and more.<br>
-                        You'll see all available options when you click "Submit Order".
-                    </p>
-                </div>
+                <label for="mpesaCode">M-Pesa Code <span class="required">*</span></label>
+                <input type="text" id="mpesaCode" required placeholder="Enter your M-Pesa transaction code (e.g., QGH7X2K9L)" maxlength="20">
+                <small style="display: block; margin-top: 6px; font-size: 12px; color: #718096; font-weight: 400;">
+                    Please enter the M-Pesa transaction code you received after payment
+                </small>
             </div>
 
             <div class="form-group">
@@ -1215,9 +1206,6 @@
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
     
-    <!-- Paystack Inline JS -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -1242,23 +1230,6 @@
         let products = [];
         let supabaseClient = null;
         
-        // Paystack configuration (loaded from environment variables)
-        // Will be set after env-loader.js loads
-        let PAYSTACK_PUBLIC_KEY = '';
-        
-        // Wait for environment config to load Paystack key
-        if (window.ENV_CONFIG_LOADED) {
-            PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || '';
-        } else {
-            // Wait for config to load
-            window.addEventListener('envConfigLoaded', function() {
-                PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || '';
-                if (!PAYSTACK_PUBLIC_KEY) {
-                    console.error('❌ Paystack Public Key not found. Please set LIVE_PUBLIC_KEY in Netlify environment variables.');
-                }
-            });
-        }
-        
         // Mapbox configuration (loaded from environment)
         // Will be set after env-loader.js loads
         let MAPBOX_ACCESS_TOKEN = '';
@@ -1273,9 +1244,7 @@
             });
         }
         
-        // Payment state
-        let paymentCompleted = false;
-        let paymentReference = null;
+        // M-Pesa code for in-person orders
 
         // Wait for Supabase library and environment variables to be available
         async function waitForSupabase(callback, maxAttempts = 50) {
@@ -1324,19 +1293,12 @@
 
         let selectedProduct = null;
         let selectedColor = null;
-        let orderCart = []; // Cart array for multiple items
 
         const searchInput = document.getElementById('productSearch');
         const searchResults = document.getElementById('searchResults');
         const selectedProductDiv = document.getElementById('selectedProduct');
         const colorOptionsDiv = document.getElementById('colorOptions');
         const colorGrid = document.getElementById('colorGrid');
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        const orderCartDiv = document.getElementById('orderCart');
-        const cartItems = document.getElementById('cartItems');
-        const cartCount = document.getElementById('cartCount');
-        const cartTotal = document.getElementById('cartTotal');
-        const totalAmount = document.getElementById('totalAmount');
 
         // Initialize Supabase and load products
         async function initializeSupabase() {
@@ -1431,7 +1393,7 @@
 
             // Create new channel for products table
             productsChannel = supabaseClient
-                .channel('products-changes-fashion')
+                .channel('products-changes-inhouse')
                 .on(
                     'postgres_changes',
                     {
@@ -1440,16 +1402,16 @@
                         table: 'products'
                     },
                     (payload) => {
-                        console.log('Products realtime event (fashion form):', payload.eventType);
+                        console.log('Products realtime event (inhouse form):', payload.eventType);
                         // Reload products when any change occurs
                         loadProductsFromDatabase();
                     }
                 )
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
-                        console.log('✅ Subscribed to products realtime changes (fashion form)');
+                        console.log('✅ Subscribed to products realtime changes (inhouse form)');
                     } else if (status === 'CHANNEL_ERROR') {
-                        console.error('❌ Error subscribing to products realtime (fashion form)');
+                        console.error('❌ Error subscribing to products realtime (inhouse form)');
                     }
                 });
         }
@@ -1509,26 +1471,23 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', async () => {
-            // Ensure custom size fields are not required on page load (they're hidden)
-            const customHeight = document.getElementById('customHeight');
-            const customBust = document.getElementById('customBust');
-            const customWaist = document.getElementById('customWaist');
-            const customHips = document.getElementById('customHips');
-            if (customHeight) customHeight.required = false;
-            if (customBust) customBust.required = false;
-            if (customWaist) customWaist.required = false;
-            if (customHips) customHips.required = false;
-            
-            // Set up clear button event listener
+            // Set up clear button event listener (desktop and mobile)
             const clearBtn = document.getElementById('clearProductBtn');
             if (clearBtn) {
+                // Desktop click
                 clearBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     clearSelectedProduct();
                 });
+                
+                // Mobile touch
+                clearBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearSelectedProduct();
+                }, { passive: false });
             }
-
 
             // Wait for Supabase library and environment variables to be fully loaded
             await waitForSupabase(() => {
@@ -1557,9 +1516,7 @@
             if (results.length === 0) {
                 searchResults.innerHTML = '<div class="no-results">No items found</div>';
                 searchResults.classList.add('active');
-                if (backdrop && window.innerWidth <= 640) {
-                    backdrop.classList.add('active');
-                }
+                // Backdrop not needed since results appear under search bar
                 return;
             }
             searchResults.innerHTML = results.map(product => {
@@ -1586,10 +1543,7 @@
             }).join('');
             searchResults.classList.add('active');
             
-            // Show backdrop on mobile
-            if (backdrop && window.innerWidth <= 640) {
-                backdrop.classList.add('active');
-            }
+            // Backdrop not needed since results appear under search bar
         }
 
         function selectProduct(productId) {
@@ -1688,11 +1642,6 @@
                 // Update selected color display
                 const selectedColorDisplay = document.getElementById('selectedColorDisplay');
                 selectedColorDisplay.textContent = `Colour: ${selectedColor}`;
-                
-                // Show "Add Colour" button when color is selected
-                if (addToCartBtn) {
-                    addToCartBtn.style.display = 'block';
-                }
             };
             
             document.querySelectorAll('.color-option').forEach(option => {
@@ -1711,80 +1660,6 @@
                 }, { passive: false });
             });
         }
-        
-        // Add to cart functionality
-        function addItemToCart() {
-            if (!selectedProduct || !selectedColor) {
-                alert('Please select a product and color');
-                return;
-            }
-
-            const cartItem = {
-                id: Date.now() + Math.random(), // Unique ID for cart item
-                product: selectedProduct,
-                color: selectedColor,
-                measurements: null // Will be set on submit
-            };
-
-            orderCart.push(cartItem);
-            updateCartDisplay();
-            
-            // Reset current selection
-            selectedProduct = null;
-            selectedColor = null;
-            searchInput.value = '';
-            selectedProductDiv.classList.remove('active');
-            colorOptionsDiv.classList.remove('active');
-            document.getElementById('selectedColorDisplay').textContent = '';
-            if (addToCartBtn) {
-                addToCartBtn.style.display = 'none';
-            }
-        }
-
-        function removeItemFromCart(itemId) {
-            orderCart = orderCart.filter(item => item.id !== itemId);
-            updateCartDisplay();
-        }
-
-        function updateCartDisplay() {
-            if (!cartItems || !cartCount || !cartTotal || !totalAmount) return;
-
-            if (orderCart.length === 0) {
-                cartItems.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">No items added yet. Select a product and color to add items to your cart.</div>';
-                orderCartDiv.style.display = 'none';
-                cartTotal.style.display = 'none';
-                return;
-            }
-
-            orderCartDiv.style.display = 'block';
-            cartCount.textContent = `(${orderCart.length} ${orderCart.length === 1 ? 'item' : 'items'})`;
-            
-            const total = orderCart.reduce((sum, item) => sum + item.product.price, 0);
-            totalAmount.textContent = total.toLocaleString();
-            cartTotal.style.display = 'block';
-
-            cartItems.innerHTML = orderCart.map(item => {
-                return `
-                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(0,0,0,0.05);">
-                        <img src="${item.product.image || 'https://via.placeholder.com/400'}" alt="${item.product.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px; font-size: 14px;">${item.product.name}</div>
-                            <div style="font-size: 12px; color: #718096; margin-bottom: 2px;">Color: ${item.color}</div>
-                            <div style="font-weight: 600; color: #1B4D3E; font-size: 14px;">KES ${item.product.price.toLocaleString()}</div>
-                        </div>
-                        <button type="button" onclick="removeCartItem(${item.id})" style="background: rgba(239, 68, 68, 0.1); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: #ef4444; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" title="Remove item">×</button>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        // Make removeCartItem available globally
-        window.removeCartItem = removeItemFromCart;
-        
-        // Add to cart button click handler
-        if (addToCartBtn) {
-            addToCartBtn.addEventListener('click', addItemToCart);
-        }
 
         // Body measurements dropdown - show custom input if custom is selected
         document.getElementById('bodyMeasurements').addEventListener('change', function() {
@@ -1796,29 +1671,16 @@
             
             if (this.value === 'custom') {
                 customInput.style.display = 'block';
-                // Set required AFTER showing to avoid validation errors
-                setTimeout(() => {
-                    customHeight.required = true;
-                    customBust.required = true;
-                    customWaist.required = true;
-                    customHips.required = true;
-                }, 0);
-                // Ensure inputs are enabled and can receive focus
-                customHeight.disabled = false;
-                customBust.disabled = false;
-                customWaist.disabled = false;
-                customHips.disabled = false;
-                customHeight.style.pointerEvents = 'auto';
-                customBust.style.pointerEvents = 'auto';
-                customWaist.style.pointerEvents = 'auto';
-                customHips.style.pointerEvents = 'auto';
+                customHeight.required = true;
+                customBust.required = true;
+                customWaist.required = true;
+                customHips.required = true;
             } else {
-                // Remove required BEFORE hiding to avoid validation errors
+                customInput.style.display = 'none';
                 customHeight.required = false;
                 customBust.required = false;
                 customWaist.required = false;
                 customHips.required = false;
-                customInput.style.display = 'none';
                 customHeight.value = '';
                 customBust.value = '';
                 customWaist.value = '';
@@ -2443,9 +2305,11 @@
                          data-lat="${result.lat}" 
                          data-lng="${result.lon}" 
                          data-name="${displayName.replace(/"/g, '&quot;')}"
-                         style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(0, 0, 0, 0.05); transition: background 0.2s;"
+                         style="padding: 14px 16px; min-height: 44px; cursor: pointer; border-bottom: 1px solid rgba(0, 0, 0, 0.05); transition: background 0.2s; touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;"
                          onmouseover="this.style.background='rgba(246, 211, 101, 0.1)'"
-                         onmouseout="this.style.background='white'">
+                         onmouseout="this.style.background='white'"
+                         ontouchstart="this.style.background='rgba(246, 211, 101, 0.1)'"
+                         ontouchend="this.style.background='white'">
                         <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 4px; display: flex; align-items: center;">
                             ${primaryName}${typeLabel}
                         </div>
@@ -2454,27 +2318,42 @@
                 `;
             }).join('');
 
-            // Add click handlers
+            // Helper function to handle location selection (works for both click and touch)
+            const handleLocationSelection = function(item) {
+                const lat = parseFloat(item.dataset.lat);
+                const lng = parseFloat(item.dataset.lng);
+                const name = item.dataset.name;
+                
+                setLocationMarker(lat, lng, name);
+                // Show primary name in search box, not full address
+                const primaryName = name.split(',')[0];
+                const locationSearch = document.getElementById('locationSearch');
+                locationSearch.value = primaryName;
+                
+                // Show clear button
+                const clearBtn = document.getElementById('clearLocationSearch');
+                if (clearBtn) {
+                    clearBtn.style.display = 'flex';
+                }
+                
+                suggestionsDiv.style.display = 'none';
+            };
+
+            // Add click and touch handlers
             suggestionsDiv.querySelectorAll('.location-suggestion').forEach(item => {
-                item.addEventListener('click', function() {
-                    const lat = parseFloat(this.dataset.lat);
-                    const lng = parseFloat(this.dataset.lng);
-                    const name = this.dataset.name;
-                    
-                    setLocationMarker(lat, lng, name);
-                    // Show primary name in search box, not full address
-                    const primaryName = name.split(',')[0];
-                    const locationSearch = document.getElementById('locationSearch');
-                    locationSearch.value = primaryName;
-                    
-                    // Show clear button
-                    const clearBtn = document.getElementById('clearLocationSearch');
-                    if (clearBtn) {
-                        clearBtn.style.display = 'flex';
-                    }
-                    
-                    suggestionsDiv.style.display = 'none';
+                // Desktop click
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleLocationSelection(this);
                 });
+                
+                // Mobile touch
+                item.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleLocationSelection(this);
+                }, { passive: false });
             });
 
             suggestionsDiv.style.display = 'block';
@@ -2502,17 +2381,31 @@
                     }
                 });
 
-                // Hide suggestions when clicking outside
+                // Helper function to check if click/touch is outside location search area
+                const isOutsideLocationSearch = function(target) {
+                    return !target.closest('#locationSearch') && 
+                           !target.closest('#locationSuggestions') && 
+                           !target.closest('#clearLocationSearch');
+                };
+                
+                // Hide suggestions when clicking outside (desktop)
                 document.addEventListener('click', function(e) {
-                    if (!e.target.closest('#locationSearch') && !e.target.closest('#locationSuggestions') && !e.target.closest('#clearLocationSearch')) {
+                    if (isOutsideLocationSearch(e.target)) {
                         document.getElementById('locationSuggestions').style.display = 'none';
                     }
                 });
+                
+                // Hide suggestions when touching outside (mobile)
+                document.addEventListener('touchend', function(e) {
+                    if (isOutsideLocationSearch(e.target)) {
+                        document.getElementById('locationSuggestions').style.display = 'none';
+                    }
+                }, { passive: true });
             }
             
-            // Clear location search button
+            // Clear location search button (desktop and mobile)
             if (clearLocationSearch) {
-                clearLocationSearch.addEventListener('click', function(e) {
+                const handleClearLocation = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     locationSearch.value = '';
@@ -2526,11 +2419,13 @@
                         marker = null;
                     }
                     selectedLocation = { lat: null, lng: null, displayName: null };
-                    document.getElementById('deliveryLatitude').value = '';
-                    document.getElementById('deliveryLongitude').value = '';
-                    document.getElementById('deliveryDisplayName').value = '';
-                    document.getElementById('selectedLocationInfo').style.display = 'none';
-                });
+                };
+                
+                // Desktop click
+                clearLocationSearch.addEventListener('click', handleClearLocation);
+                
+                // Mobile touch
+                clearLocationSearch.addEventListener('touchend', handleClearLocation, { passive: false });
             }
             
             // Manual entry toggle
@@ -2540,26 +2435,44 @@
             const cancelManualEntry = document.getElementById('cancelManualEntry');
             
             if (toggleManualEntry) {
-                toggleManualEntry.addEventListener('click', function() {
+                const handleToggleManual = function() {
                     const isVisible = manualEntryFields.style.display !== 'none';
                     if (!isVisible) {
                         manualEntryFields.style.display = 'block';
                         toggleManualEntry.textContent = '📍 Can\'t find your location? Enter manually';
                     }
-                });
+                };
+                
+                // Desktop click
+                toggleManualEntry.addEventListener('click', handleToggleManual);
+                
+                // Mobile touch
+                toggleManualEntry.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    handleToggleManual();
+                }, { passive: false });
             }
             
             // Cancel manual entry button
             if (cancelManualEntry) {
-                cancelManualEntry.addEventListener('click', function() {
+                const handleCancelManual = function() {
                     manualEntryFields.style.display = 'none';
                     document.getElementById('manualAddress').value = '';
                     toggleManualEntry.textContent = '📍 Can\'t find your location? Enter manually';
-                });
+                };
+                
+                // Desktop click
+                cancelManualEntry.addEventListener('click', handleCancelManual);
+                
+                // Mobile touch
+                cancelManualEntry.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    handleCancelManual();
+                }, { passive: false });
             }
             
             if (saveManualLocation) {
-                saveManualLocation.addEventListener('click', function() {
+                const handleSaveManual = function() {
                     const manualAddress = document.getElementById('manualAddress').value.trim();
                     
                     if (!manualAddress) {
@@ -2609,7 +2522,16 @@
                         document.getElementById('manualAddress').value = '';
                         toggleManualEntry.textContent = '📍 Can\'t find your location? Enter manually';
                     }, 2000);
-                });
+                };
+                
+                // Desktop click
+                saveManualLocation.addEventListener('click', handleSaveManual);
+                
+                // Mobile touch
+                saveManualLocation.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    handleSaveManual();
+                }, { passive: false });
             }
             
             // Pre-initialize map in background for faster loading
@@ -2628,126 +2550,51 @@
                     console.warn('Leaflet.js not loaded after 5 seconds');
                 }
             }, 100);
-            
-            // Delivery option - show location input for delivery options that need it
-            const deliveryOption = document.getElementById('deliveryOption');
-            if (deliveryOption) {
-                deliveryOption.addEventListener('change', function() {
-                    const deliveryLocationInput = document.getElementById('deliveryLocationInput');
-                    const storeLocationMessage = document.getElementById('storeLocationMessage');
-                    
-                    if (!deliveryLocationInput || !storeLocationMessage) {
-                        console.error('Delivery location elements not found');
-                        return;
-                    }
-                    
-                    if (this.value === 'uber' || this.value === 'pickup-mtaani' || this.value === 'courier') {
-                        deliveryLocationInput.style.display = 'block';
-                        storeLocationMessage.style.display = 'none';
-                        
-                        // Ensure map container is visible and has dimensions
-                        const mapContainer = document.getElementById('mapContainer');
-                        if (mapContainer) {
-                            mapContainer.style.display = 'block';
-                            mapContainer.style.width = '100%';
-                            mapContainer.style.height = '400px';
-                        }
-                        
-                        // Show map immediately (it's already pre-initialized)
-                        setTimeout(() => {
-                            initializeMap();
-                        }, 50); // Much faster since map is pre-loaded
-                    } else if (this.value === 'in-store-pickup') {
-                        deliveryLocationInput.style.display = 'none';
-                        storeLocationMessage.style.display = 'block';
-                        
-                        // Reset location data
-                        selectedLocation = { lat: null, lng: null, displayName: null };
-                        const deliveryLatitude = document.getElementById('deliveryLatitude');
-                        const deliveryLongitude = document.getElementById('deliveryLongitude');
-                        const deliveryDisplayName = document.getElementById('deliveryDisplayName');
-                        const selectedLocationInfo = document.getElementById('selectedLocationInfo');
-                        
-                        if (deliveryLatitude) deliveryLatitude.value = '';
-                        if (deliveryLongitude) deliveryLongitude.value = '';
-                        if (deliveryDisplayName) deliveryDisplayName.value = '';
-                        if (selectedLocationInfo) selectedLocationInfo.style.display = 'none';
-                    } else {
-                        deliveryLocationInput.style.display = 'none';
-                        storeLocationMessage.style.display = 'none';
-                        
-                        // Reset location data
-                        selectedLocation = { lat: null, lng: null, displayName: null };
-                        const deliveryLatitude = document.getElementById('deliveryLatitude');
-                        const deliveryLongitude = document.getElementById('deliveryLongitude');
-                        const deliveryDisplayName = document.getElementById('deliveryDisplayName');
-                        const selectedLocationInfo = document.getElementById('selectedLocationInfo');
-                        
-                        if (deliveryLatitude) deliveryLatitude.value = '';
-                        if (deliveryLongitude) deliveryLongitude.value = '';
-                        if (deliveryDisplayName) deliveryDisplayName.value = '';
-                        if (selectedLocationInfo) selectedLocationInfo.style.display = 'none';
-                    }
-                });
-            }
         });
 
-        // Function to launch Paystack payment
-        function launchPaystackPayment(email, name, phone, amount) {
-            return new Promise((resolve, reject) => {
-                // Get Paystack key from window (loaded from environment)
-                const paystackKey = window.PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY;
+        // Delivery option - show location input for delivery options that need it
+        document.getElementById('deliveryOption').addEventListener('change', function() {
+            const deliveryLocationInput = document.getElementById('deliveryLocationInput');
+            const storeLocationMessage = document.getElementById('storeLocationMessage');
+            
+            if (this.value === 'uber' || this.value === 'pickup-mtaani' || this.value === 'courier') {
+                deliveryLocationInput.style.display = 'block';
+                storeLocationMessage.style.display = 'none';
                 
-                if (!paystackKey) {
-                    reject(new Error('Paystack Public Key not configured. Please set LIVE_PUBLIC_KEY in Netlify environment variables.'));
-                    return;
+                // Ensure map container is visible and has dimensions
+                const mapContainer = document.getElementById('mapContainer');
+                if (mapContainer) {
+                    mapContainer.style.display = 'block';
+                    mapContainer.style.width = '100%';
+                    mapContainer.style.height = '400px';
                 }
                 
-                // Format phone number for Paystack (remove + and ensure it's in the right format)
-                // Paystack expects phone number in format: 254712345678 (country code + number, no +)
-                let formattedPhone = phone.replace(/^\+/, ''); // Remove leading +
+                // Show map immediately (it's already pre-initialized)
+                setTimeout(() => {
+                    initializeMap();
+                }, 50); // Much faster since map is pre-loaded
+            } else if (this.value === 'in-store-pickup') {
+                deliveryLocationInput.style.display = 'none';
+                storeLocationMessage.style.display = 'block';
                 
-                const handler = PaystackPop.setup({
-                    key: paystackKey,
-                    email: email,
-                    amount: amount, // Amount in cents (KES * 100)
-                    currency: 'KES', // Kenyan Shilling
-                    ref: 'APPAREL_' + Math.floor((Math.random() * 1000000000) + 1), // Generate a unique reference
-                    // Phone number for M-Pesa and other mobile money payments
-                    phone: formattedPhone,
-                    metadata: {
-                        custom_fields: [
-                            {
-                                display_name: "Customer Name",
-                                variable_name: "customer_name",
-                                value: name
-                            },
-                            {
-                                display_name: "Phone Number",
-                                variable_name: "phone_number",
-                                value: phone
-                            }
-                        ]
-                    },
-                    // Enable all payment channels (M-Pesa, Airtel Money, Cards, Bank Transfer, etc.)
-                    channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-                    callback: function(response) {
-                        // Payment successful
-                        paymentReference = response.reference;
-                        paymentCompleted = true;
-                        resolve(response);
-                    },
-                    onClose: function() {
-                        // User closed the payment window
-                        paymentCompleted = false;
-                        paymentReference = null;
-                        reject(new Error('Payment window closed. Payment not completed.'));
-                    }
-                });
+                // Reset location data
+                selectedLocation = { lat: null, lng: null, displayName: null };
+                document.getElementById('deliveryLatitude').value = '';
+                document.getElementById('deliveryLongitude').value = '';
+                document.getElementById('deliveryDisplayName').value = '';
+                document.getElementById('selectedLocationInfo').style.display = 'none';
+            } else {
+                deliveryLocationInput.style.display = 'none';
+                storeLocationMessage.style.display = 'none';
                 
-                handler.openIframe();
-            });
-        }
+                // Reset location data
+                selectedLocation = { lat: null, lng: null, displayName: null };
+                document.getElementById('deliveryLatitude').value = '';
+                document.getElementById('deliveryLongitude').value = '';
+                document.getElementById('deliveryDisplayName').value = '';
+                document.getElementById('selectedLocationInfo').style.display = 'none';
+            }
+        });
 
         // Helper function to check if click/touch is outside search area
         const isOutsideSearchArea = function(target) {
@@ -2804,8 +2651,12 @@
                 return;
             }
 
-            if (orderCart.length === 0) {
-                alert('Please add at least one item to your cart');
+            if (!selectedProduct) {
+                alert('Please select an item');
+                return;
+            }
+            if (!selectedColor) {
+                alert('Please select a color');
                 return;
             }
 
@@ -2815,17 +2666,17 @@
                 return;
             }
             
-            // Get email
-            const customerEmail = document.getElementById('email').value.trim();
-            if (!customerEmail) {
-                alert('Please enter your email address');
+            // Get M-Pesa code
+            const mpesaCode = document.getElementById('mpesaCode').value.trim();
+            if (!mpesaCode) {
+                alert('Please enter your M-Pesa transaction code');
                 return;
             }
             
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(customerEmail)) {
-                alert('Please enter a valid email address');
+            // Validate M-Pesa code format (typically alphanumeric, 8-20 characters)
+            const mpesaCodeRegex = /^[A-Z0-9]{8,20}$/i;
+            if (!mpesaCodeRegex.test(mpesaCode)) {
+                alert('Please enter a valid M-Pesa transaction code (8-20 alphanumeric characters)');
                 return;
             }
 
@@ -2894,31 +2745,22 @@
                 }
             }
             
-            // Payment is always facilitated by Paystack
-            const paymentOption = 'paystack';
+            // Payment is in-person with M-Pesa
+            const paymentOption = 'mpesa';
 
             // Disable submit button and show loading
             const submitBtn = document.querySelector('.submit-btn');
             const originalBtnText = submitBtn.textContent;
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing Payment...';
+            submitBtn.textContent = 'Creating Order...';
 
             try {
                 const customerName = document.getElementById('name').value.trim();
                 
-                // Reset payment state
-                paymentCompleted = false;
-                paymentReference = null;
+                // Get M-Pesa code (already validated above)
+                const mpesaCodeValue = mpesaCode.toUpperCase(); // Store in uppercase for consistency
                 
-                // Calculate total amount from cart
-                const totalPrice = orderCart.reduce((sum, item) => sum + item.product.price, 0);
-                
-                // Calculate amount in kobo (Paystack uses smallest currency unit)
-                // Since we're using KES, we'll convert to kobo equivalent
-                // 1 KES = 100 kobo (similar to NGN)
-                const amountInKobo = Math.round(totalPrice * 100);
-                
-                // Get phone number for payment
+                // Get phone number
                 let countryCode = document.getElementById('countryCode').value.trim();
                 let phoneNumber = document.getElementById('phoneNumber').value.trim();
                 
@@ -2931,32 +2773,7 @@
                 }
                 
                 // Combine for full phone number
-                const fullPhoneNumber = '+' + countryCode + phoneNumber;
-                
-                // Launch Paystack payment
-                try {
-                    await launchPaystackPayment(customerEmail, customerName, fullPhoneNumber, amountInKobo);
-                } catch (paymentError) {
-                    // Payment failed or was cancelled
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalBtnText;
-                    alert('❌ Payment not completed. Please complete payment to submit your order.');
-                    return;
-                }
-                
-                // Check if payment was successful
-                if (!paymentCompleted || !paymentReference) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalBtnText;
-                    alert('❌ Payment not completed. Please complete payment to submit your order.');
-                    return;
-                }
-                
-                // Payment successful, proceed with order creation
-                submitBtn.textContent = 'Creating Order...';
-                
-                // Use the phone number we already formatted for payment
-                const customerPhone = fullPhoneNumber;
+                const customerPhone = '+' + countryCode + phoneNumber;
                 
                 const comments = document.getElementById('comments').value.trim();
 
@@ -3013,38 +2830,24 @@
                     deliveryLocation = deliveryDisplayName; // Keep for backward compatibility
                 }
 
-                // Prepare items array for JSONB storage (multi-item support)
-                const itemsArray = orderCart.map(item => ({
-                    product_id: item.product.id,
-                    product_name: item.product.name,
-                    product_image: item.product.image || 'https://via.placeholder.com/400',
-                    color: item.color,
-                    price: item.product.price,
-                    measurements: measurements || {}
-                }));
-
-                console.log(`📦 Creating order with ${itemsArray.length} items stored as JSONB:`, itemsArray.map(i => ({ product_name: i.product_name, color: i.color, price: i.price })));
-
-                // Save order with items stored as JSONB (multi-item support)
-                // Note: totalPrice is already calculated above for payment
+                // Save order with payment reference in dedicated column
                 const { data: newOrder, error: orderError } = await supabaseClient
                     .from('orders')
                     .insert({
                         customer_id: customerId,
                         customer_phone: customerPhone, // Required field
-                        product_id: orderCart[0].product.id, // First product for backward compatibility
+                        product_id: selectedProduct.id,
                         status: 'pending',
-                        color: orderCart[0].color, // First color for backward compatibility
-                        price: totalPrice, // Total price of all items
-                        items: itemsArray, // JSONB array of all items
+                        color: selectedColor,
+                        price: selectedProduct.price,
                         delivery_option: deliveryOption,
                         delivery_location: deliveryLocation || null, // Keep for backward compatibility
                         delivery_latitude: deliveryLatitude ? parseFloat(deliveryLatitude) : null,
                         delivery_longitude: deliveryLongitude ? parseFloat(deliveryLongitude) : null,
                         delivery_display_name: deliveryDisplayName || null,
-                        payment_option: paymentOption, // 'paystack' - now allowed in database constraint
-                        payment_reference: paymentReference, // Store payment reference in dedicated column
-                        payment_status: 'completed', // Payment status
+                        payment_option: paymentOption, // 'mpesa' for in-person orders
+                        payment_reference: mpesaCodeValue, // Store M-Pesa code in payment_reference column
+                        payment_status: 'pending', // Payment status - pending verification for in-person orders
                         comments: finalComments || null
                     })
                     .select()
@@ -3054,10 +2857,9 @@
                     throw new Error(`Failed to create order: ${orderError.message}`);
                 }
 
-                // Use the totalPrice already calculated above
-                alert(`✓ Payment successful!\n✓ Order submitted successfully!\n\nItems: ${orderCart.length}\nTotal: KES ${totalPrice.toLocaleString()}\nPayment Reference: ${paymentReference}\n\nYou can freely exit.`);
+                alert(`✓ Order submitted successfully!\n\nM-Pesa Code: ${mpesaCodeValue}\n\nYour order will be processed after payment verification.`);
                 
-                // Reset form and cart
+                // Reset form
                 document.getElementById('orderForm').reset();
                 // Reset country code to just +
                 document.getElementById('countryCode').value = '+';
@@ -3088,15 +2890,10 @@
                 
                 selectedProduct = null;
                 selectedColor = null;
-                orderCart = [];
-                updateCartDisplay();
-                if (addToCartBtn) {
-                    addToCartBtn.style.display = 'none';
-                }
                 
                 // Reset payment state
-                paymentCompleted = false;
-                paymentReference = null;
+                // Reset M-Pesa code field
+                document.getElementById('mpesaCode').value = '';
             } catch (error) {
                 console.error('Error submitting order:', error);
                 alert(`❌ Failed to submit order: ${error.message}. Please try again.`);
